@@ -46,6 +46,26 @@ def calculate_centrality(G):
     return degree, betweenness
 
 
+# ADD THIS FUNCTION HERE
+def get_adjacency_graph(filename):
+    with open(filename, "r") as file:
+        data = json.load(file)
+
+    graph = {}
+
+    # Add all nodes
+    for node in data["nodes"]:
+        graph[node["id"]] = set()
+
+    # Add edges in both directions
+    for edge in data["edges"]:
+        u, v = edge
+        graph[u].add(v)
+        graph[v].add(u)
+
+    return graph
+
+
 if __name__ == "__main__":
 
     G = load_topology("data/bank_topology.json")
@@ -63,3 +83,11 @@ if __name__ == "__main__":
 
     for node, value in betweenness.items():
         print(node, round(value, 3))
+
+    # ADD THIS AT THE END
+    graph = get_adjacency_graph("data/bank_topology.json")
+
+    print("\nAdjacency Graph:")
+
+    for node, neighbors in graph.items():
+        print(node, "->", neighbors)
