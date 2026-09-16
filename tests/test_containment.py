@@ -77,6 +77,12 @@ class TestContain(unittest.TestCase):
         plan, _ = contain(g, {'a'}, beta=1.0, K=1, rng=random.Random(1))
         self.assertEqual(plan, ['c'])
 
+    def test_contain_without_rng_does_not_crash(self):
+        g = path_graph(5)
+        plan, count = contain(g, {0}, beta=1.0, K=2)
+        self.assertIsInstance(plan, list)
+        self.assertLess(count, 5)
+
 
 if __name__ == "__main__":
     unittest.main()
