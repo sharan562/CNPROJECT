@@ -5,6 +5,8 @@ modeled as responding to the outbreak in near-real-time. Quarantining removes a
 node and its incident edges, so it can neither be infected nor spread further.
 """
 
+import random
+
 from src.propagation import simulate_step
 from src.risk_score import score_all
 
@@ -26,6 +28,8 @@ def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gam
     Returns ``(plan, infected_count)``: ``plan`` is the ordered list of
     quarantined nodes; ``infected_count`` is the final number of infected nodes.
     """
+    if rng is None:
+        rng = random.Random()
     g = {u: set(nbs) for u, nbs in graph.items()}
     infected = set(seeds)
     arrival = {s: 0 for s in seeds}
