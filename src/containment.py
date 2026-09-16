@@ -18,9 +18,10 @@ def quarantine(graph, v):
     }
 
 
-def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, rng=None):
+def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, eps=0.0, rng=None):
     """Run the outbreak to completion, quarantining the highest-risk susceptible
-    node after each spread step while the budget ``K`` lasts.
+    node after each spread step while the budget ``K`` lasts and the per-step
+    growth exceeds ``eps``.
 
     Returns ``(plan, infected_count)``: ``plan`` is the ordered list of
     quarantined nodes; ``infected_count`` is the final number of infected nodes.
@@ -40,7 +41,7 @@ def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gam
             arrival[n] = time
         infected |= newly
 
-        if len(plan) < K:
+        if len(plan) < K and len(newly) > eps:
             susceptible = set(g) - infected
             if susceptible:
                 scores = score_all(g, arrival, tau, alpha, beta_centrality, gamma)
