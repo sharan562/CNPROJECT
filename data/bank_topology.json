@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "id": "ATM_1",
+      "type": "ATM",
+      "security": "medium"
+    },
+    {
+      "id": "ATM_2",
+      "type": "ATM",
+      "security": "medium"
+    },
+    {
+      "id": "BRANCH_1",
+      "type": "Branch Server",
+      "security": "high"
+    },
+    {
+      "id": "BRANCH_2",
+      "type": "Branch Server",
+      "security": "high"
+    },
+    {
+      "id": "WS_1",
+      "type": "Employee Workstation",
+      "security": "low"
+    },
+    {
+      "id": "WS_2",
+      "type": "Employee Workstation",
+      "security": "low"
+    },
+    {
+      "id": "ADMIN_1",
+      "type": "Admin Host",
+      "security": "high"
+    },
+    {
+      "id": "CORE_1",
+      "type": "Core Banking Server",
+      "security": "critical"
+    }
+  ],
+  "edges": [
+    ["ATM_1", "BRANCH_1"],
+    ["ATM_2", "BRANCH_1"],
+    ["BRANCH_1", "WS_1"],
+    ["BRANCH_1", "WS_2"],
+    ["BRANCH_1", "CORE_1"],
+    ["BRANCH_2", "WS_2"],
+    ["BRANCH_2", "CORE_1"],
+    ["WS_1", "ADMIN_1"],
+    ["WS_2", "ADMIN_1"],
+    ["ADMIN_1", "CORE_1"]
+  ]
+}
