@@ -56,6 +56,27 @@ class TestContain(unittest.TestCase):
         for v in plan:
             self.assertIn(v, g)
 
+    def test_eps_above_growth_stops_actions(self):
+        g = path_graph(6)
+        plan, count = contain(g, {0}, beta=1.0, K=5, eps=100.0, rng=random.Random(1))
+        self.assertEqual(plan, [])
+        self.assertEqual(count, 6)
+
+    def test_picks_highest_scored_node(self):
+        # 'c' bridges the hub 'b' to two extra leaves, giving it the highest
+        # centrality (3/4) and reach among the still-susceptible nodes.
+        g = {
+            'a': {'b'},
+            'b': {'a', 'c', 'd', 'e'},
+            'c': {'b', 'f', 'g'},
+            'd': {'b'},
+            'e': {'b'},
+            'f': {'c'},
+            'g': {'c'},
+        }
+        plan, _ = contain(g, {'a'}, beta=1.0, K=1, rng=random.Random(1))
+        self.assertEqual(plan, ['c'])
+
 
 if __name__ == "__main__":
     unittest.main()
