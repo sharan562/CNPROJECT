@@ -46,8 +46,17 @@ def calculate_centrality(G):
     return degree, betweenness
 
 
-# ADD THIS FUNCTION HERE
 def get_adjacency_graph(filename):
+    """
+    Convert the JSON topology into an adjacency dictionary.
+
+    Format:
+    {
+        "NODE_1": {"NODE_2", "NODE_3"},
+        "NODE_2": {"NODE_1"}
+    }
+    """
+
     with open(filename, "r") as file:
         data = json.load(file)
 
@@ -60,6 +69,7 @@ def get_adjacency_graph(filename):
     # Add edges in both directions
     for edge in data["edges"]:
         u, v = edge
+
         graph[u].add(v)
         graph[v].add(u)
 
@@ -68,10 +78,13 @@ def get_adjacency_graph(filename):
 
 if __name__ == "__main__":
 
+    # Load NetworkX topology
     G = load_topology("data/bank_topology.json")
 
+    # Display topology information
     get_topology_info(G)
 
+    # Calculate centrality
     degree, betweenness = calculate_centrality(G)
 
     print("\nDegree Centrality:")
@@ -84,7 +97,7 @@ if __name__ == "__main__":
     for node, value in betweenness.items():
         print(node, round(value, 3))
 
-    # ADD THIS AT THE END
+    # Convert topology to adjacency dictionary
     graph = get_adjacency_graph("data/bank_topology.json")
 
     print("\nAdjacency Graph:")
