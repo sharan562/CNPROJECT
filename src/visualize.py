@@ -97,11 +97,12 @@ def plot_infection_curve(infected_history):
     plt.close()
 
 
-def plot_comparison(results, output_path="strategy_comparison.png"):
+def plot_comparison(results, output_path="strategy_comparison.png", errors=None, title=None):
     """Save a comparison of final infection counts by strategy."""
 
     strategies = list(results.keys())
     infected_counts = list(results.values())
+    error_values = [errors[strategy] for strategy in strategies] if errors else None
 
     plt.figure()
 
@@ -110,11 +111,13 @@ def plot_comparison(results, output_path="strategy_comparison.png"):
         strategies,
         infected_counts,
         color=colors[:len(strategies)],
+        yerr=error_values,
+        capsize=5 if errors else 0,
     )
 
     plt.xlabel("Containment Strategy")
     plt.ylabel("Final Infected Nodes")
-    plt.title("Containment Strategy Comparison")
+    plt.title(title or "Containment Strategy Comparison")
 
     plt.xticks(rotation=20)
     plt.tight_layout()

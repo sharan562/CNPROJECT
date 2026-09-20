@@ -41,6 +41,31 @@ class TestBudgetExhaustion(unittest.TestCase):
 
 
 class TestDeterministicBaselines(unittest.TestCase):
+    def test_baseline_does_not_restart_after_a_failed_spread_step(self):
+        result = run_random_quarantine(
+            path_graph(3), {0}, beta=0.25, K=1,
+            rng=random.Random(2), selection_rng=random.Random(99),
+        )
+        self.assertEqual(result["plan"], [])
+        self.assertEqual(result["infected_count"], 1)
+
+    def test_random_selection_does_not_advance_infection_rng(self):
+        graph = path_graph(3)
+        infection_rng = random.Random(42)
+        expected_rng = random.Random(42)
+        expected_rng.random()  # One infection attempt infects node 1.
+
+        run_random_quarantine(
+            graph,
+            {0},
+            beta=1.0,
+            K=1,
+            rng=infection_rng,
+            selection_rng=random.Random(99),
+        )
+
+        self.assertEqual(infection_rng.random(), expected_rng.random())
+
     def test_random_baseline_is_deterministic_for_a_fixed_seed(self):
         graph = path_graph(6)
         first = run_random_quarantine(
