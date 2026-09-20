@@ -48,6 +48,14 @@ The command prints final infection counts and ordered quarantine plans, and upda
 - `network_topology.png` — baseline infected nodes and proposed quarantines
 - `comparison_summary.json` — configuration, counts, plans, and infection histories
 
+## Run the multi-branch scenario
+
+```powershell
+python -m src.comparison --topology data/bank_topology_multibranch.json --seed-node WS_N1 --beta 0.4 --budget 2 --trials 30
+```
+
+This 19-node topology represents three branches, six ATMs, six workstations, an admin host, remote-access gateway, core-banking server, and disaster-recovery server.
+
 ## Run tests
 
 ```powershell

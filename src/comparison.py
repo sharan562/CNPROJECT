@@ -2,6 +2,7 @@ import random
 import json
 import math
 import statistics
+import argparse
 from pathlib import Path
 
 from src.topology import get_adjacency_graph
@@ -87,14 +88,23 @@ def run_comparison(graph, seeds=SEEDS, beta=BETA, budget=K, rng_seed=RNG_SEED):
     return results, plans, histories, no_containment["infected"]
 
 
-def run_trials(graph, trial_count=TRIAL_COUNT, start_seed=RNG_SEED):
+def run_trials(
+    graph,
+    seeds=SEEDS,
+    beta=BETA,
+    budget=K,
+    trial_count=TRIAL_COUNT,
+    start_seed=RNG_SEED,
+):
     """Collect final infection counts over independent, reproducible trials."""
     if trial_count < 1:
         raise ValueError("trial_count must be at least 1")
 
     trial_results = None
     for seed in range(start_seed, start_seed + trial_count):
-        results, _, _, _ = run_comparison(graph, rng_seed=seed)
+        results, _, _, _ = run_comparison(
+            graph, seeds=seeds, beta=beta, budget=budget, rng_seed=seed
+        )
         if trial_results is None:
             trial_results = {strategy: [] for strategy in results}
         for strategy, count in results.items():
@@ -118,7 +128,9 @@ def summarize_trials(trial_results):
     return summary
 
 
-def save_artifacts(graph, results, plans, histories, baseline_infected, trial_results, trial_summary):
+def save_artifacts(
+    graph, results, plans, histories, baseline_infected, trial_results, trial_summary, configuration
+):
     """Write figures and a JSON summary for the demonstration and report."""
     from src.visualize import plot_comparison, plot_infection_curves, plot_network
 
@@ -145,12 +157,7 @@ def save_artifacts(graph, results, plans, histories, baseline_infected, trial_re
         output_path=RESULTS_DIR / "network_topology.png",
     )
     summary = {
-        "configuration": {
-            "seeds": SEEDS,
-            "transmission_probability": BETA,
-            "quarantine_budget": K,
-            "random_seed": RNG_SEED,
-        },
+        "configuration": configuration,
         "final_infected_counts": results,
         "quarantine_plans": plans,
         "infection_histories": histories,
@@ -161,25 +168,55 @@ def save_artifacts(graph, results, plans, histories, baseline_infected, trial_re
         json.dump(summary, file, indent=2)
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Compare banking-malware containment strategies.")
+    parser.add_argument("--topology", default="data/bank_topology.json")
+    parser.add_argument("--seed-node", default=SEEDS[0])
+    parser.add_argument("--beta", type=float, default=BETA)
+    parser.add_argument("--budget", type=int, default=K)
+    parser.add_argument("--trials", type=int, default=TRIAL_COUNT)
+    parser.add_argument("--random-seed", type=int, default=RNG_SEED)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = parse_arguments()
+    if not 0.0 <= args.beta <= 1.0:
+        raise ValueError("--beta must be between 0 and 1")
+    if args.budget < 0:
+        raise ValueError("--budget must be non-negative")
 
     # Load network
-    graph = get_adjacency_graph(
-        "data/bank_topology.json"
-    )
+    graph = get_adjacency_graph(args.topology)
+    seeds = [args.seed_node]
+    if args.seed_node not in graph:
+        raise ValueError(f"Seed node '{args.seed_node}' is not in {args.topology}")
 
     print("\n=== CONTAINMENT STRATEGY COMPARISON ===")
 
     print("\nNetwork nodes:", len(graph))
-    print("Initial infected:", SEEDS)
-    print("Transmission probability:", BETA)
-    print("Quarantine budget:", K)
+    print("Initial infected:", seeds)
+    print("Transmission probability:", args.beta)
+    print("Quarantine budget:", args.budget)
 
-    results, plans, histories, baseline_infected = run_comparison(graph)
-    trial_results = run_trials(graph)
+    results, plans, histories, baseline_infected = run_comparison(
+        graph, seeds=seeds, beta=args.beta, budget=args.budget, rng_seed=args.random_seed
+    )
+    trial_results = run_trials(
+        graph, seeds=seeds, beta=args.beta, budget=args.budget,
+        trial_count=args.trials, start_seed=args.random_seed,
+    )
     trial_summary = summarize_trials(trial_results)
     save_artifacts(
-        graph, results, plans, histories, baseline_infected, trial_results, trial_summary
+        graph, results, plans, histories, baseline_infected, trial_results, trial_summary,
+        {
+            "topology": args.topology,
+            "seeds": seeds,
+            "transmission_probability": args.beta,
+            "quarantine_budget": args.budget,
+            "random_seed": args.random_seed,
+            "trial_count": args.trials,
+        },
     )
 
     print("\n--- Final Infection Counts ---")
@@ -220,7 +257,7 @@ if __name__ == "__main__":
             "infections prevented"
         )
 
-    print("\n--- Mean Final Infections (30 Trials, 95% CI) ---")
+    print(f"\n--- Mean Final Infections ({args.trials} Trials, 95% CI) ---")
     for strategy, metrics in trial_summary.items():
         print(
             f"{strategy} -> {metrics['mean_final_infected']:.2f} "
