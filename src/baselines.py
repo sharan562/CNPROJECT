@@ -1,13 +1,13 @@
 import random
 
 from src.propagation import simulate_step
-from src.propagation import propagate
+from src.propagation import propagate, propagate_with_history
 
 
 def run_no_containment(graph, seeds, beta, rng):
     """Run the outbreak without any containment."""
 
-    arrival, infected = propagate(
+    arrival, infected, history = propagate_with_history(
         graph,
         seeds,
         beta,
@@ -17,7 +17,8 @@ def run_no_containment(graph, seeds, beta, rng):
     return {
         "plan": [],
         "infected": infected,
-        "infected_count": len(infected)
+        "infected_count": len(infected),
+        "history": history,
     }
 
 

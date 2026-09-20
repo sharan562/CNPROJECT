@@ -24,17 +24,19 @@ RESULTS_DIR = Path("results")
 def run_proposed(graph, seeds, beta, K, rng):
     """Run the proposed risk-based greedy containment."""
 
-    plan, infected_count = contain(
+    plan, infected_count, history = contain(
         graph,
         seeds,
         beta,
         K,
-        rng=rng
+        rng=rng,
+        return_history=True,
     )
 
     return {
         "plan": plan,
-        "infected_count": infected_count
+        "infected_count": infected_count,
+        "history": history,
     }
 
 
@@ -68,15 +70,20 @@ def run_comparison(graph, seeds=SEEDS, beta=BETA, budget=K, rng_seed=RNG_SEED):
         "Earliest Infection": earliest_result["plan"],
         "Proposed": proposed_result["plan"],
     }
-    return results, plans, no_containment["infected"]
+    histories = {
+        "No Containment": no_containment["history"],
+        "Proposed": proposed_result["history"],
+    }
+    return results, plans, histories, no_containment["infected"]
 
 
-def save_artifacts(graph, results, plans, baseline_infected):
+def save_artifacts(graph, results, plans, histories, baseline_infected):
     """Write figures and a JSON summary for the demonstration and report."""
-    from src.visualize import plot_comparison, plot_network
+    from src.visualize import plot_comparison, plot_infection_curves, plot_network
 
     RESULTS_DIR.mkdir(exist_ok=True)
     plot_comparison(results, RESULTS_DIR / "strategy_comparison.png")
+    plot_infection_curves(histories, RESULTS_DIR / "infection_curves.png")
     plot_network(
         graph,
         infected=baseline_infected,
@@ -92,6 +99,7 @@ def save_artifacts(graph, results, plans, baseline_infected):
         },
         "final_infected_counts": results,
         "quarantine_plans": plans,
+        "infection_histories": histories,
     }
     with (RESULTS_DIR / "comparison_summary.json").open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2)
@@ -111,8 +119,8 @@ if __name__ == "__main__":
     print("Transmission probability:", BETA)
     print("Quarantine budget:", K)
 
-    results, plans, baseline_infected = run_comparison(graph)
-    save_artifacts(graph, results, plans, baseline_infected)
+    results, plans, histories, baseline_infected = run_comparison(graph)
+    save_artifacts(graph, results, plans, histories, baseline_infected)
 
     print("\n--- Final Infection Counts ---")
 

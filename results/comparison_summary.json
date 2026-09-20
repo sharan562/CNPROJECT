@@ -31,5 +31,20 @@
       "WS_2",
       "CORE_1"
     ]
+  },
+  "infection_histories": {
+    "No Containment": [
+      1,
+      2,
+      3,
+      6,
+      8
+    ],
+    "Proposed": [
+      1,
+      2,
+      3,
+      4
+    ]
   }
 }

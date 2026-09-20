@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from src.propagation import simulate_step, propagate
+from src.propagation import propagate_with_history, simulate_step, propagate
 
 
 def path_graph(n):
@@ -34,6 +34,12 @@ class TestSimulateStep(unittest.TestCase):
 
 
 class TestPropagate(unittest.TestCase):
+    def test_history_records_cumulative_infections(self):
+        g = path_graph(4)
+        _, infected, history = propagate_with_history(g, {0}, beta=1.0, rng=random.Random(1))
+        self.assertEqual(history, [1, 2, 3, 4])
+        self.assertEqual(infected, {0, 1, 2, 3})
+
     def test_arrival_time_equals_graph_distance(self):
         g = path_graph(5)
         arrival, _ = propagate(g, {0}, beta=1.0, rng=random.Random(1))

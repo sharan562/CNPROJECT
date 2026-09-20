@@ -124,6 +124,23 @@ def plot_comparison(results, output_path="strategy_comparison.png"):
     plt.close()
 
 
+def plot_infection_curves(histories, output_path="infection_curves.png"):
+    """Save cumulative infection curves for each supplied strategy."""
+    plt.figure(figsize=(8, 5))
+    for strategy, history in histories.items():
+        plt.plot(range(len(history)), history, marker="o", label=strategy)
+
+    plt.xlabel("Time Step")
+    plt.ylabel("Cumulative Infected Nodes")
+    plt.title("Malware Spread Over Time")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=160)
+    plt.close()
+
+
 if __name__ == "__main__":
 
     from topology import get_adjacency_graph
