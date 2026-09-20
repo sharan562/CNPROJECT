@@ -61,6 +61,10 @@ def run_random_quarantine(graph, seeds, beta, K, rng):
         g = quarantine(g, node)
         plan.append(node)
 
+    # Keep simulating after the response budget is exhausted so this result is
+    # directly comparable with the proposed containment method.
+    _, infected = propagate(g, infected, beta, rng)
+
     return {
         "plan": plan,
         "infected_count": len(infected)
@@ -100,6 +104,10 @@ def run_degree_quarantine(graph, seeds, beta, K, rng):
 
         g = quarantine(g, node)
         plan.append(node)
+
+    # Keep simulating after the response budget is exhausted so this result is
+    # directly comparable with the proposed containment method.
+    _, infected = propagate(g, infected, beta, rng)
 
     return {
         "plan": plan,
