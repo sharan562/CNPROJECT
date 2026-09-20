@@ -16,6 +16,7 @@ def run_no_containment(graph, seeds, beta, rng):
 
     return {
         "plan": [],
+        "infected": infected,
         "infected_count": len(infected)
     }
 

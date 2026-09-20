@@ -1,0 +1,35 @@
+{
+  "configuration": {
+    "seeds": [
+      "WS_1"
+    ],
+    "transmission_probability": 0.25,
+    "quarantine_budget": 2,
+    "random_seed": 42
+  },
+  "final_infected_counts": {
+    "No Containment": 8,
+    "Random": 6,
+    "Degree": 4,
+    "Earliest Infection": 6,
+    "Proposed": 4
+  },
+  "quarantine_plans": {
+    "Random": [
+      "ATM_2",
+      "ADMIN_1"
+    ],
+    "Degree": [
+      "WS_2",
+      "CORE_1"
+    ],
+    "Earliest Infection": [
+      "ADMIN_1",
+      "ATM_1"
+    ],
+    "Proposed": [
+      "WS_2",
+      "CORE_1"
+    ]
+  }
+}
