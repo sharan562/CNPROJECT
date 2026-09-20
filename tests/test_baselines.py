@@ -39,9 +39,28 @@ class TestBudgetExhaustion(unittest.TestCase):
         self.assertEqual(len(result["plan"]), 1)
         self.assertEqual(result["infected_count"], 3)
 
+
+class TestDeterministicBaselines(unittest.TestCase):
+    def test_random_baseline_is_deterministic_for_a_fixed_seed(self):
+        graph = path_graph(6)
+        first = run_random_quarantine(
+            graph, {0}, beta=0.5, K=2, rng=random.Random(42)
+        )
+        second = run_random_quarantine(
+            graph, {0}, beta=0.5, K=2, rng=random.Random(42)
+        )
+
+        self.assertEqual(first, second)
+
     def test_random_baseline_continues_after_budget_is_used(self):
+        graph = {
+            "seed": {"hub"},
+            "hub": {"seed", "leaf_1", "leaf_2"},
+            "leaf_1": {"hub"},
+            "leaf_2": {"hub"},
+        }
         result = run_random_quarantine(
-            self.graph, {"seed"}, beta=1.0, K=1, rng=random.Random(1)
+            graph, {"seed"}, beta=1.0, K=1, rng=random.Random(1)
         )
 
         self.assertEqual(len(result["plan"]), 1)

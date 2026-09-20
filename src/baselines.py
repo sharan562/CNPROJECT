@@ -56,7 +56,7 @@ def run_random_quarantine(graph, seeds, beta, K, rng):
         if not susceptible:
             break
 
-        node = rng.choice(list(susceptible))
+        node = rng.choice(sorted(susceptible, key=str))
 
         g = quarantine(g, node)
         plan.append(node)
@@ -97,10 +97,7 @@ def run_degree_quarantine(graph, seeds, beta, K, rng):
         if not susceptible:
             break
 
-        node = max(
-            susceptible,
-            key=lambda v: len(g[v])
-        )
+        node = max(susceptible, key=lambda node: (len(g[node]), str(node)))
 
         g = quarantine(g, node)
         plan.append(node)
@@ -137,7 +134,10 @@ def run_earliest_infection(graph, seeds, beta, K, rng):
 
         node = min(
             susceptible,
-            key=lambda candidate: _distance_to_infected(g, candidate, infected),
+            key=lambda candidate: (
+                _distance_to_infected(g, candidate, infected),
+                str(candidate),
+            ),
         )
         g = quarantine(g, node)
         plan.append(node)

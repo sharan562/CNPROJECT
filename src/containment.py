@@ -49,7 +49,7 @@ def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gam
             susceptible = set(g) - infected
             if susceptible:
                 scores = score_all(g, arrival, tau, alpha, beta_centrality, gamma)
-                v = max(susceptible, key=scores.get)
+                v = max(susceptible, key=lambda node: (scores[node], str(node)))
                 g = quarantine(g, v)
                 plan.append(v)
 

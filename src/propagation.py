@@ -11,8 +11,8 @@ def simulate_step(graph, infected, beta, rng):
     probability ``beta``. Returns the set of newly infected nodes.
     """
     newly = set()
-    for v in infected:
-        for u in graph.get(v, ()):
+    for v in sorted(infected, key=str):
+        for u in sorted(graph.get(v, ()), key=str):
             if u not in infected and u not in newly and rng.random() < beta:
                 newly.add(u)
     return newly
