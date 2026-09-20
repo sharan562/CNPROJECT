@@ -108,39 +108,56 @@ def run_degree_quarantine(graph, seeds, beta, K, rng):
 
 
 def run_earliest_infection(graph, seeds, beta, K, rng):
-    """Quarantine nodes based on their infection arrival order."""
+    """Quarantine the susceptible node nearest to the observed infection.
 
-    arrival, _ = propagate(
-        graph,
-        seeds,
-        beta,
-        rng
-    )
-
-    candidates = [
-        node for node in graph
-        if node not in seeds
-    ]
-
-    candidates.sort(
-        key=lambda node: arrival.get(node, float("inf"))
-    )
-
-    plan = candidates[:K]
-
+    This real-time baseline uses graph distance to the current infected set;
+    it never simulates a future outbreak to select a quarantine target.
+    """
     g = {u: set(v) for u, v in graph.items()}
+    infected = set(seeds)
+    plan = []
 
-    for node in plan:
+    while len(plan) < K:
+        newly = simulate_step(g, infected, beta, rng)
+        if not newly:
+            break
+        infected |= newly
+
+        susceptible = set(g) - infected
+        if not susceptible:
+            break
+
+        node = min(
+            susceptible,
+            key=lambda candidate: _distance_to_infected(g, candidate, infected),
+        )
         g = quarantine(g, node)
+        plan.append(node)
 
-    _, infected = propagate(
-        g,
-        seeds,
-        beta,
-        rng
-    )
+    _, infected = propagate(g, infected, beta, rng)
 
     return {
         "plan": plan,
         "infected_count": len(infected)
     }
+
+
+def _distance_to_infected(graph, start, infected):
+    """Return the shortest-path distance from ``start`` to any infected node."""
+    frontier = {start}
+    visited = {start}
+    distance = 0
+
+    while frontier:
+        if frontier & infected:
+            return distance
+        frontier = {
+            neighbor
+            for node in frontier
+            for neighbor in graph.get(node, ())
+            if neighbor not in visited
+        }
+        visited |= frontier
+        distance += 1
+
+    return float("inf")
