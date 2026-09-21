@@ -1,0 +1,36 @@
+{
+  "nodes": [
+    {"id": "CORE_1", "type": "Core Banking Server", "security": "critical"},
+    {"id": "DR_1", "type": "Disaster Recovery Server", "security": "critical"},
+    {"id": "ADMIN_1", "type": "Admin Host", "security": "high"},
+    {"id": "VPN_1", "type": "Remote Access Gateway", "security": "high"},
+    {"id": "BRANCH_NORTH", "type": "Branch Server", "security": "high"},
+    {"id": "BRANCH_SOUTH", "type": "Branch Server", "security": "high"},
+    {"id": "BRANCH_WEST", "type": "Branch Server", "security": "high"},
+    {"id": "ATM_N1", "type": "ATM", "security": "medium"},
+    {"id": "ATM_N2", "type": "ATM", "security": "medium"},
+    {"id": "ATM_S1", "type": "ATM", "security": "medium"},
+    {"id": "ATM_S2", "type": "ATM", "security": "medium"},
+    {"id": "ATM_W1", "type": "ATM", "security": "medium"},
+    {"id": "ATM_W2", "type": "ATM", "security": "medium"},
+    {"id": "WS_N1", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_N2", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_S1", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_S2", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_W1", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_W2", "type": "Employee Workstation", "security": "low"}
+  ],
+  "edges": [
+    ["CORE_1", "DR_1"], ["CORE_1", "ADMIN_1"], ["CORE_1", "BRANCH_NORTH"],
+    ["CORE_1", "BRANCH_SOUTH"], ["CORE_1", "BRANCH_WEST"], ["CORE_1", "VPN_1"],
+    ["ADMIN_1", "VPN_1"],
+    ["ADMIN_1", "WS_N2"], ["ADMIN_1", "WS_S2"], ["ADMIN_1", "WS_W2"],
+    ["ADMIN_1", "BRANCH_NORTH"], ["ADMIN_1", "BRANCH_SOUTH"], ["ADMIN_1", "BRANCH_WEST"],
+    ["DR_1", "BRANCH_NORTH"], ["DR_1", "BRANCH_SOUTH"], ["DR_1", "BRANCH_WEST"],
+    ["BRANCH_NORTH", "BRANCH_SOUTH"], ["BRANCH_SOUTH", "BRANCH_WEST"], ["BRANCH_NORTH", "BRANCH_WEST"],
+    ["BRANCH_NORTH", "ATM_N1"], ["BRANCH_NORTH", "ATM_N2"], ["BRANCH_NORTH", "WS_N1"], ["BRANCH_NORTH", "WS_N2"],
+    ["BRANCH_SOUTH", "ATM_S1"], ["BRANCH_SOUTH", "ATM_S2"], ["BRANCH_SOUTH", "WS_S1"], ["BRANCH_SOUTH", "WS_S2"],
+    ["BRANCH_WEST", "ATM_W1"], ["BRANCH_WEST", "ATM_W2"], ["BRANCH_WEST", "WS_W1"], ["BRANCH_WEST", "WS_W2"],
+    ["WS_N1", "WS_N2"], ["WS_S1", "WS_S2"], ["WS_W1", "WS_W2"]
+  ]
+}
