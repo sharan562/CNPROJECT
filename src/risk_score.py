@@ -3,17 +3,31 @@
 score(v) = alpha * urgency(v) + beta * centrality(v) + gamma * reach(v)
 where alpha + beta + gamma = 1 and each component lies in [0, 1].
 
-urgency(v)   = exp(-t[v] / tau)     (0 for never-infected nodes)
+urgency(v)   = exp(-dist(v) / tau)   (distance to nearest infected node)
 centrality(v)= degree(v) / max degree
 reach(v)     = susceptible nodes within 2 hops (excluding v) / total susceptible
 """
 
 import math
+from collections import deque
 
 
-def urgency(t, tau):
-    """Time-decayed urgency; earlier infection (smaller t) is more urgent."""
-    return math.exp(-t / tau)
+def urgency(distance, tau):
+    """Proximity urgency; a node closer to the infection is more urgent."""
+    return math.exp(-distance / tau)
+
+
+def distances_to_infected(graph, infected):
+    """Shortest-path distance from every node to the nearest infected node."""
+    distances = {node: 0 for node in infected if node in graph}
+    queue = deque(distances)
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph.get(node, ()):
+            if neighbor not in distances:
+                distances[neighbor] = distances[node] + 1
+                queue.append(neighbor)
+    return distances
 
 
 def centrality(graph, v):
@@ -26,9 +40,9 @@ def centrality(graph, v):
     return len(graph.get(v, ())) / max_deg
 
 
-def reach(graph, v, arrival):
+def reach(graph, v, infected):
     """Fraction of susceptible nodes within 2 hops of v (v excluded)."""
-    susceptible = set(graph) - set(arrival)
+    susceptible = set(graph) - set(infected)
     if not susceptible:
         return 0.0
 
@@ -48,18 +62,27 @@ def reach(graph, v, arrival):
     return len(reachable) / len(susceptible)
 
 
-def risk_score(graph, v, arrival, tau=5.0, alpha=0.4, beta=0.35, gamma=0.25):
-    """Composite risk score for node v given current infection state."""
-    t = arrival.get(v, float("inf"))
+def _score(graph, v, infected, distances, tau, alpha, beta, gamma):
+    """Combine urgency, centrality, and reach into a single risk score."""
     return (
-        alpha * urgency(t, tau)
+        alpha * urgency(distances.get(v, float("inf")), tau)
         + beta * centrality(graph, v)
-        + gamma * reach(graph, v, arrival)
+        + gamma * reach(graph, v, infected)
     )
 
 
-def score_all(graph, arrival, tau=5.0, alpha=0.4, beta=0.35, gamma=0.25):
-    """Score every node in the graph."""
+def risk_score(graph, v, infected, tau=1.0, alpha=0.4, beta=0.35, gamma=0.25):
+    """Composite risk score for node v given the current infected set."""
+    return _score(
+        graph, v, infected, distances_to_infected(graph, infected),
+        tau, alpha, beta, gamma,
+    )
+
+
+def score_all(graph, infected, tau=1.0, alpha=0.4, beta=0.35, gamma=0.25):
+    """Score every node in the graph, computing infection distances once."""
+    distances = distances_to_infected(graph, infected)
     return {
-        v: risk_score(graph, v, arrival, tau, alpha, beta, gamma) for v in graph
+        v: _score(graph, v, infected, distances, tau, alpha, beta, gamma)
+        for v in graph
     }
