@@ -20,7 +20,7 @@ def quarantine(graph, v):
     }
 
 
-def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, eps=0.0, rng=None, return_history=False):
+def contain(graph, seeds, beta, K, tau=1.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, eps=0.0, rng=None, return_history=False):
     """Run the outbreak to completion, quarantining the highest-risk susceptible
     node after each spread step while the budget ``K`` lasts and the per-step
     growth exceeds ``eps``.
@@ -32,25 +32,20 @@ def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gam
         rng = random.Random()
     g = {u: set(nbs) for u, nbs in graph.items()}
     infected = set(seeds)
-    arrival = {s: 0 for s in seeds}
     plan = []
     history = [len(infected)]
-    time = 0
 
     while True:
         newly = simulate_step(g, infected, beta, rng)
         if not newly:
             break
-        time += 1
-        for n in newly:
-            arrival[n] = time
         infected |= newly
         history.append(len(infected))
 
         if len(plan) < K and len(newly) > eps:
             susceptible = set(g) - infected
             if susceptible:
-                scores = score_all(g, arrival, tau, alpha, beta_centrality, gamma)
+                scores = score_all(g, infected, tau, alpha, beta_centrality, gamma)
                 v = max(susceptible, key=lambda node: (scores[node], str(node)))
                 g = quarantine(g, v)
                 plan.append(v)
