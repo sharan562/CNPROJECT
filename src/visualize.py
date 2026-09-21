@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import networkx as nx
+from matplotlib.patches import Patch
+from pathlib import Path
 
 
-def plot_network(graph, infected=None, quarantined=None):
-    """Display the bank network topology."""
+def plot_network(graph, infected=None, quarantined=None, output_path="network_topology.png"):
+    """Save the bank topology, highlighting infected and quarantined nodes."""
 
     infected = set(infected or [])
     quarantined = set(quarantined or [])
@@ -33,7 +35,8 @@ def plot_network(graph, infected=None, quarantined=None):
         G,
         pos,
         nodelist=normal_nodes,
-        node_size=900
+        node_size=900,
+        node_color="#9ecae1",
     )
 
     # Draw infected nodes
@@ -42,7 +45,8 @@ def plot_network(graph, infected=None, quarantined=None):
             G,
             pos,
             nodelist=list(infected),
-            node_size=900
+            node_size=900,
+            node_color="#e74c3c",
         )
 
     # Draw quarantined nodes
@@ -51,16 +55,22 @@ def plot_network(graph, infected=None, quarantined=None):
             G,
             pos,
             nodelist=list(quarantined),
-            node_size=900
+            node_size=900,
+            node_color="#f39c12",
         )
 
     # Draw labels
     nx.draw_networkx_labels(G, pos)
 
-    plt.title("Bank Network Topology")
+    plt.legend(handles=[
+        Patch(color="#9ecae1", label="Susceptible"),
+        Patch(color="#e74c3c", label="Infected"),
+        Patch(color="#f39c12", label="Quarantined"),
+    ], loc="best")
+    plt.title("Bank Network: Baseline Infection and Proposed Quarantine Plan")
     plt.axis("off")
-
-    plt.savefig("network_topology.png")
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=160, bbox_inches="tight")
     plt.close()
 
 
@@ -87,27 +97,50 @@ def plot_infection_curve(infected_history):
     plt.close()
 
 
-def plot_comparison(results):
-    """Compare final infection counts for different strategies."""
+def plot_comparison(results, output_path="strategy_comparison.png", errors=None, title=None):
+    """Save a comparison of final infection counts by strategy."""
 
     strategies = list(results.keys())
     infected_counts = list(results.values())
+    error_values = [errors[strategy] for strategy in strategies] if errors else None
 
     plt.figure()
 
+    colors = ["#7f8c8d", "#95a5a6", "#5dade2", "#58d68d", "#e67e22"]
     plt.bar(
         strategies,
-        infected_counts
+        infected_counts,
+        color=colors[:len(strategies)],
+        yerr=error_values,
+        capsize=5 if errors else 0,
     )
 
     plt.xlabel("Containment Strategy")
     plt.ylabel("Final Infected Nodes")
-    plt.title("Containment Strategy Comparison")
+    plt.title(title or "Containment Strategy Comparison")
 
     plt.xticks(rotation=20)
     plt.tight_layout()
 
-    plt.savefig("strategy_comparison.png")
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=160)
+    plt.close()
+
+
+def plot_infection_curves(histories, output_path="infection_curves.png"):
+    """Save cumulative infection curves for each supplied strategy."""
+    plt.figure(figsize=(8, 5))
+    for strategy, history in histories.items():
+        plt.plot(range(len(history)), history, marker="o", label=strategy)
+
+    plt.xlabel("Time Step")
+    plt.ylabel("Cumulative Infected Nodes")
+    plt.title("Malware Spread Over Time")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=160)
     plt.close()
 
 
