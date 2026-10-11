@@ -6,7 +6,7 @@ tested on any section.
 
 ---
 
-## Member 1 — Core Algorithm & Containment Engine (the inventive step)
+## Sharan Pillai — Core Algorithm & Containment Engine (the inventive step)
 
 **Coding (owns the core of the invention):**
 | File | Responsibility |
@@ -28,7 +28,7 @@ tested on any section.
 
 ---
 
-## Member 2 — Topology, Baselines & Evaluation (the surrounding system)
+## Saatvika Shree K — Topology, Baselines & Evaluation (the surrounding system)
 
 **Coding:**
 | File | Responsibility |
@@ -70,5 +70,5 @@ CERT-In, AIIMS 2022) with citations — feeds section 3 and the final report.
 
 | Member | Design | Coding | Testing | Documentation |
 |---|---|---|---|---|
-| Member 1 | risk-score model, containment algorithm | propagation, risk_score, containment | unit tests (timing, score, greedy) | Problem, Objectives, Summary, Algorithm, Math Model, Claims, Abstract |
-| Member 2 | topology model, evaluation harness | topology, simulate (baselines), visualize | baseline comparison runs | Field, Background, Prior Art, Drawings, Detailed Description, Architecture, Working, Example, Alternatives, Advantages, Applicability, Figures |
+| Sharan Pillai | risk-score model, containment algorithm | propagation, risk_score, containment | unit tests (timing, score, greedy) | Problem, Objectives, Summary, Algorithm, Math Model, Claims, Abstract |
+| Saatvika Shree K | topology model, evaluation harness | topology, simulate (baselines), visualize | baseline comparison runs | Field, Background, Prior Art, Drawings, Detailed Description, Architecture, Working, Example, Alternatives, Advantages, Applicability, Figures |
