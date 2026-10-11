@@ -20,7 +20,7 @@ def quarantine(graph, v):
     }
 
 
-def contain(graph, seeds, beta, K, tau=1.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, eps=0.0, rng=None, return_history=False):
+def contain(graph, seeds, beta, K, tau=5.0, alpha=0.4, beta_centrality=0.35, gamma=0.25, eps=0.0, rng=None, return_history=False):
     """Run the outbreak to completion, quarantining the highest-risk susceptible
     node after each spread step while the budget ``K`` lasts and the per-step
     growth exceeds ``eps``.

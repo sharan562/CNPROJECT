@@ -23,6 +23,38 @@ SEEDS = ["WS_1"]
 RNG_SEED = 42
 TRIAL_COUNT = 30
 RESULTS_DIR = Path("results")
+DEFAULT_CONFIG_PATH = Path("config/default.json")
+
+
+def default_config():
+    return {
+        "topology": "data/bank_topology.json",
+        "output_dir": str(RESULTS_DIR),
+        "seed_node": SEEDS[0],
+        "beta": BETA,
+        "budget": K,
+        "trials": TRIAL_COUNT,
+        "random_seed": RNG_SEED,
+    }
+
+
+def load_config(path=None):
+    """Load a JSON config file if one is present; otherwise return empty defaults."""
+    config_path = Path(path) if path else DEFAULT_CONFIG_PATH
+    if not config_path.exists():
+        return {}
+
+    with config_path.open("r", encoding="utf-8") as file:
+        config = json.load(file)
+
+    if not isinstance(config, dict):
+        raise ValueError(f"Config file '{config_path}' must contain a JSON object.")
+
+    normalized = {}
+    for key, value in config.items():
+        normalized_key = key.replace("-", "_")
+        normalized[normalized_key] = value
+    return normalized
 
 
 def run_proposed(graph, seeds, beta, K, rng):
@@ -129,12 +161,15 @@ def summarize_trials(trial_results):
 
 
 def save_artifacts(
-    graph, results, plans, histories, baseline_infected, trial_results, trial_summary, configuration
+    graph, results, plans, histories, baseline_infected, trial_results, trial_summary,
+    configuration, output_dir=RESULTS_DIR,
 ):
     """Write figures and a JSON summary for the demonstration and report."""
     from src.visualize import plot_comparison, plot_infection_curves, plot_network
 
-    RESULTS_DIR.mkdir(exist_ok=True)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    trial_count = len(next(iter(trial_results.values()))) if trial_results else 0
     mean_results = {
         strategy: metrics["mean_final_infected"]
         for strategy, metrics in trial_summary.items()
@@ -145,16 +180,16 @@ def save_artifacts(
     }
     plot_comparison(
         mean_results,
-        RESULTS_DIR / "strategy_comparison.png",
+        output_dir / "strategy_comparison.png",
         errors=ci95_errors,
-        title="Mean Final Infections Across 30 Trials (95% CI)",
+        title=f"Mean Final Infections Across {trial_count} Trials (95% CI)",
     )
-    plot_infection_curves(histories, RESULTS_DIR / "infection_curves.png")
+    plot_infection_curves(histories, output_dir / "infection_curves.png")
     plot_network(
         graph,
         infected=baseline_infected,
         quarantined=plans["Proposed"],
-        output_path=RESULTS_DIR / "network_topology.png",
+        output_path=output_dir / "network_topology.png",
     )
     summary = {
         "configuration": configuration,
@@ -164,19 +199,39 @@ def save_artifacts(
         "multi_trial_results": trial_results,
         "multi_trial_summary": trial_summary,
     }
-    with (RESULTS_DIR / "comparison_summary.json").open("w", encoding="utf-8") as file:
+    with (output_dir / "comparison_summary.json").open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2)
 
 
-def parse_arguments():
+def parse_arguments(argv=None):
     parser = argparse.ArgumentParser(description="Compare banking-malware containment strategies.")
-    parser.add_argument("--topology", default="data/bank_topology.json")
-    parser.add_argument("--seed-node", default=SEEDS[0])
-    parser.add_argument("--beta", type=float, default=BETA)
-    parser.add_argument("--budget", type=int, default=K)
-    parser.add_argument("--trials", type=int, default=TRIAL_COUNT)
-    parser.add_argument("--random-seed", type=int, default=RNG_SEED)
-    return parser.parse_args()
+    parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
+    parser.add_argument("--output-dir")
+    parser.add_argument("--topology")
+    parser.add_argument("--seed-node")
+    parser.add_argument("--beta", type=float)
+    parser.add_argument("--budget", type=int)
+    parser.add_argument("--trials", type=int)
+    parser.add_argument("--random-seed", type=int)
+
+    args = parser.parse_args(argv)
+    config = load_config(args.config)
+    merged = default_config()
+    merged.update(config)
+
+    for key, value in {
+        "topology": args.topology,
+        "output_dir": args.output_dir,
+        "seed_node": args.seed_node,
+        "beta": args.beta,
+        "budget": args.budget,
+        "trials": args.trials,
+        "random_seed": args.random_seed,
+    }.items():
+        if value is not None:
+            merged[key] = value
+
+    return argparse.Namespace(**merged)
 
 
 if __name__ == "__main__":
@@ -217,6 +272,7 @@ if __name__ == "__main__":
             "random_seed": args.random_seed,
             "trial_count": args.trials,
         },
+        output_dir=args.output_dir,
     )
 
     print("\n--- Final Infection Counts ---")
@@ -264,4 +320,4 @@ if __name__ == "__main__":
             f"± {metrics['ci95_half_width']:.2f}"
         )
 
-    print("\nSaved results to:", RESULTS_DIR)
+    print("\nSaved results to:", args.output_dir)

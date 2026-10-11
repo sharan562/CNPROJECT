@@ -32,6 +32,27 @@ From the project root:
 python -m src.comparison
 ```
 
+The defaults are defined in `config/default.json` and can be overridden at runtime.
+
+```powershell
+python -m src.comparison --config config/default.json --seed-node WS_2 --beta 0.3 --budget 3 --trials 20 --random-seed 99
+```
+
+A second preset for the multi-branch topology is also available. Each preset writes to its own
+subdirectory under `results/`, so running one experiment does not overwrite the other:
+
+```powershell
+python -m src.comparison --config config/multibranch.json
+```
+
+You can also use the convenience launcher script:
+
+```powershell
+./run_experiment.ps1
+./run_experiment.ps1 -Config config/multibranch.json
+./run_experiment.ps1 -Config config/default.json -SeedNode WS_2 -Beta 0.3 -Budget 3 -Trials 20 -RandomSeed 99
+```
+
 The default experiment uses:
 
 - seed node: `WS_1`
