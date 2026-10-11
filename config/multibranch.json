@@ -1,0 +1,9 @@
+{
+  "topology": "data/bank_topology_multibranch.json",
+  "output_dir": "results/multibranch",
+  "seed_node": "WS_N1",
+  "beta": 0.4,
+  "budget": 2,
+  "trials": 30,
+  "random_seed": 42
+}

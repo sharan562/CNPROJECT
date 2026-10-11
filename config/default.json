@@ -1,0 +1,9 @@
+{
+  "topology": "data/bank_topology.json",
+  "output_dir": "results/default",
+  "seed_node": "WS_1",
+  "beta": 0.25,
+  "budget": 2,
+  "trials": 30,
+  "random_seed": 42
+}

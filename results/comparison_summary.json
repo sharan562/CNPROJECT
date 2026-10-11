@@ -14,7 +14,7 @@
     "Random": 16,
     "Degree": 13,
     "Earliest Infection": 4,
-    "Proposed": 13
+    "Proposed": 10
   },
   "quarantine_plans": {
     "Random": [
@@ -31,7 +31,7 @@
     ],
     "Proposed": [
       "CORE_1",
-      "BRANCH_WEST"
+      "WS_W2"
     ]
   },
   "infection_histories": {
@@ -49,10 +49,9 @@
       2,
       4,
       5,
-      8,
+      7,
       9,
-      10,
-      13
+      10
     ]
   },
   "multi_trial_results": {
@@ -185,13 +184,13 @@
       15
     ],
     "Proposed": [
-      13,
+      10,
       4,
       1,
       5,
       3,
       5,
-      13,
+      14,
       5,
       10,
       4,
@@ -213,7 +212,7 @@
       2,
       1,
       4,
-      13,
+      4,
       5
     ]
   },
@@ -244,9 +243,9 @@
     },
     "Proposed": {
       "trials": 30,
-      "mean_final_infected": 4.666666666666667,
-      "standard_deviation": 3.6797051356131067,
-      "ci95_half_width": 1.3167655717253646
+      "mean_final_infected": 4.3,
+      "standard_deviation": 3.196441987477693,
+      "ci95_half_width": 1.143832075128143
     }
   }
 }
