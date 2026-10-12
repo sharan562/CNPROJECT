@@ -77,6 +77,18 @@ python -m src.comparison --topology data/bank_topology_multibranch.json --seed-n
 
 This 19-node topology represents three branches, six ATMs, six workstations, an admin host, remote-access gateway, core-banking server, and disaster-recovery server.
 
+## Run the interactive dashboard
+
+A Streamlit dashboard provides live sliders for the experiment parameters and
+recomputes the comparison chart, infection curves, network topology, and
+quarantine plans in the browser:
+
+```powershell
+streamlit run app.py
+```
+
+`streamlit` is included in `requirements.txt`.
+
 ## Run tests
 
 ```powershell

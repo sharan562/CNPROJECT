@@ -4,8 +4,11 @@ from matplotlib.patches import Patch
 from pathlib import Path
 
 
-def plot_network(graph, infected=None, quarantined=None, output_path="network_topology.png"):
-    """Save the bank topology, highlighting infected and quarantined nodes."""
+def plot_network(graph, infected=None, quarantined=None, output_path=None):
+    """Render the bank topology, highlighting infected and quarantined nodes.
+
+    Returns the Matplotlib figure. Saves to ``output_path`` when provided.
+    """
 
     infected = set(infected or [])
     quarantined = set(quarantined or [])
@@ -26,6 +29,8 @@ def plot_network(graph, infected=None, quarantined=None, output_path="network_to
         node for node in G.nodes
         if node not in infected and node not in quarantined
     ]
+
+    fig = plt.figure()
 
     # Draw edges
     nx.draw_networkx_edges(G, pos)
@@ -69,9 +74,11 @@ def plot_network(graph, infected=None, quarantined=None, output_path="network_to
     ], loc="best")
     plt.title("Bank Network: Baseline Infection and Proposed Quarantine Plan")
     plt.axis("off")
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path, dpi=160, bbox_inches="tight")
-    plt.close()
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_path, dpi=160, bbox_inches="tight")
+        plt.close()
+    return fig
 
 
 def plot_infection_curve(infected_history):
@@ -97,14 +104,17 @@ def plot_infection_curve(infected_history):
     plt.close()
 
 
-def plot_comparison(results, output_path="strategy_comparison.png", errors=None, title=None):
-    """Save a comparison of final infection counts by strategy."""
+def plot_comparison(results, output_path=None, errors=None, title=None):
+    """Render a comparison of final infection counts by strategy.
+
+    Returns the Matplotlib figure. Saves to ``output_path`` when provided.
+    """
 
     strategies = list(results.keys())
     infected_counts = list(results.values())
     error_values = [errors[strategy] for strategy in strategies] if errors else None
 
-    plt.figure()
+    fig = plt.figure()
 
     colors = ["#7f8c8d", "#95a5a6", "#5dade2", "#58d68d", "#e67e22"]
     plt.bar(
@@ -122,14 +132,19 @@ def plot_comparison(results, output_path="strategy_comparison.png", errors=None,
     plt.xticks(rotation=20)
     plt.tight_layout()
 
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path, dpi=160)
-    plt.close()
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_path, dpi=160)
+        plt.close()
+    return fig
 
 
-def plot_infection_curves(histories, output_path="infection_curves.png"):
-    """Save cumulative infection curves for each supplied strategy."""
-    plt.figure(figsize=(8, 5))
+def plot_infection_curves(histories, output_path=None):
+    """Render cumulative infection curves for each supplied strategy.
+
+    Returns the Matplotlib figure. Saves to ``output_path`` when provided.
+    """
+    fig = plt.figure(figsize=(8, 5))
     for strategy, history in histories.items():
         plt.plot(range(len(history)), history, marker="o", label=strategy)
 
@@ -139,9 +154,11 @@ def plot_infection_curves(histories, output_path="infection_curves.png"):
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path, dpi=160)
-    plt.close()
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_path, dpi=160)
+        plt.close()
+    return fig
 
 
 if __name__ == "__main__":
@@ -167,7 +184,8 @@ if __name__ == "__main__":
     plot_network(
         graph,
         infected=infected,
-        quarantined=quarantined
+        quarantined=quarantined,
+        output_path="network_topology.png",
     )
 
     print("Network visualization saved as network_topology.png")
