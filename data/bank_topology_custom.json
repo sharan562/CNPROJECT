@@ -1,0 +1,35 @@
+{
+  "nodes": [
+    {"id": "CORE_1", "type": "Core Banking Server", "security": "critical"},
+    {"id": "DR_1", "type": "Disaster Recovery Server", "security": "critical"},
+    {"id": "ADMIN_1", "type": "Admin Host", "security": "high"},
+    {"id": "VPN_1", "type": "Remote Access Gateway", "security": "high"},
+    {"id": "BRANCH_A", "type": "Branch Server", "security": "high"},
+    {"id": "BRANCH_B", "type": "Branch Server", "security": "high"},
+    {"id": "ATM_A1", "type": "ATM", "security": "medium"},
+    {"id": "ATM_A2", "type": "ATM", "security": "medium"},
+    {"id": "ATM_B1", "type": "ATM", "security": "medium"},
+    {"id": "HQ_WS_1", "type": "Employee Workstation", "security": "low"},
+    {"id": "HQ_WS_2", "type": "Employee Workstation", "security": "low"},
+    {"id": "HQ_WS_3", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_A1", "type": "Employee Workstation", "security": "low"},
+    {"id": "WS_B1", "type": "Employee Workstation", "security": "low"}
+  ],
+  "edges": [
+    ["CORE_1", "DR_1"],
+    ["CORE_1", "ADMIN_1"],
+    ["CORE_1", "BRANCH_A"],
+    ["CORE_1", "BRANCH_B"],
+    ["ADMIN_1", "VPN_1"],
+    ["ADMIN_1", "HQ_WS_1"],
+    ["ADMIN_1", "HQ_WS_2"],
+    ["ADMIN_1", "HQ_WS_3"],
+    ["BRANCH_A", "ATM_A1"],
+    ["BRANCH_A", "ATM_A2"],
+    ["BRANCH_A", "WS_A1"],
+    ["BRANCH_B", "ATM_B1"],
+    ["BRANCH_B", "WS_B1"],
+    ["WS_A1", "WS_B1"],
+    ["HQ_WS_3", "BRANCH_A"]
+  ]
+}
