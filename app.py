@@ -109,16 +109,16 @@ with col_left:
             errors=ci_errors,
             title=f"Mean Final Infections Across {int(trials)} Trials (95% CI)",
         ),
-        use_container_width=True,
+        width="stretch",
     )
 with col_right:
     st.subheader("Infection curves")
-    st.pyplot(plot_infection_curves(histories), use_container_width=True)
+    st.pyplot(plot_infection_curves(histories), width="stretch")
 
 st.subheader("Network topology")
 st.pyplot(
     plot_network(graph, infected=baseline_infected, quarantined=plans["Proposed"]),
-    use_container_width=True,
+    width="stretch",
 )
 
 st.subheader("Quarantine plans")

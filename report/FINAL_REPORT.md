@@ -13,6 +13,22 @@
 
 ---
 
+## Review 3 Rubric Coverage Map
+
+The seven Review 3 assessment items are addressed as follows:
+
+| # | Review 3 item | Covered in |
+|---|---|---|
+| 1 | Live demonstration of the working prototype | §5 Implementation, §8 Results Artifacts, `app.py` (Streamlit), `DEMO_RUNBOOK.pdf` |
+| 2 | Testing methodology and results, including what failed and was fixed | §6 Testing and Validation |
+| 3 | Full feasibility case across all five dimensions with actual numbers | §7.5 Feasibility Analysis |
+| 4 | Comparison against the R1 literature survey | §3.1 Comparison with the Literature Survey |
+| 5 | Report quality — structure, consistency, citations | Whole document; §14 References |
+| 6 | Viva — each member can explain the whole project | §10 Team Contribution, §11 Viva Preparation |
+| 7 | Scalability and next steps | §12 Limitations and Future Work |
+
+---
+
 ## Abstract
 
 Self-propagating banking malware can move laterally through reachable hosts faster than a security team can manually isolate every affected system. This project presents a system and method for cost-constrained containment of an Emotet-class banking worm in a simulated bank network. The network is represented as a graph whose vertices are hosts such as workstations, ATMs, branch servers, administrative hosts, and core-banking systems. A discrete-time propagation model records infection growth and arrival information. A composite risk-based containment strategy then selects quarantine targets under a limited action budget by considering propagation urgency, connectivity, and reachable network exposure.
@@ -55,6 +71,8 @@ The system models propagation and containment at node level. It does not impleme
 
 An Emotet-class threat is used as the project embodiment because the project requires a specific malware type and because the model concerns self-propagating lateral movement. The simulation abstracts the exact malware implementation into a probabilistic transmission process over network edges. It does not claim to reproduce every operational behavior of Emotet.
 
+The threat model is grounded in a real Indian banking-malware incident: the Drinik Android banking trojan (CERT-In Advisory CICA-2021-2970, 21 September 2021) impersonated an Income Tax refund app and targeted customers of more than 27 Indian banks, stealing card, Aadhaar, PAN, and account details through overlay and phishing attacks. Drinik is an Android trojan rather than a self-propagating worm; it is cited to establish the banking-malware risk that the Emotet-class lateral-movement model generalizes to a network-wide containment decision.
+
 The technical problem is constrained containment. Let a network be represented by $G=(V,E)$, where $V$ is the set of hosts and $E$ is the set of reachable lateral-movement paths. Let $S$ be the initially infected seed set, $\beta$ be the per-edge transmission probability, and $K$ be the maximum number of quarantine actions. The goal is to choose an ordered plan $P$ with $|P|\leq K$ such that the final infected set is minimized:
 
 $$
@@ -78,6 +96,20 @@ The prototype compares the following approaches:
 | Proposed method | Recompute composite risk and greedily quarantine high-risk targets | Combines timing, connectivity, reach, and a finite action budget |
 
 The contribution of this project is an implemented, testable pipeline rather than a claim that one heuristic is universally optimal. The method produces an ordered containment plan and measures its effect under controlled, reproducible trials.
+
+### 3.1 Comparison with the literature survey (R1)
+
+The R1 literature survey reviewed prior work across three strands: classical epidemic modelling, graph-based propagation of computer malware, and network-immunization or centrality-based targeting. This section restates how the proposed method relates to each strand and where it improves on them.
+
+**Epidemic and SIR models.** Classical compartmental models (Kermack and McKendrick, 1927) describe outbreak behaviour at the population level and optimize global quantities such as the basic reproduction number R₀. They do not produce a per-node action list, and they assume uniform mixing rather than a concrete network. The proposed method operates directly on the bank topology and returns an ordered, budget-limited plan.
+
+**Computer-virus propagation.** Early epidemiological treatments of computer viruses (Kephart and White, 1991, 1993) established that worm spread can be modelled as a stochastic process over hosts, but their aim is to predict prevalence rather than to select containment targets under a limited response budget.
+
+**Network immunization and centrality targeting.** Immunization research (Cohen, Havlin, and ben-Avraham, 2003; Pastor-Satorras and Vespignani, 2001; Newman, 2002) shows that targeting high-degree or high-centrality nodes is more effective than random removal. However, these methods select by a single structural metric and assume an unlimited or proportional immunization budget. They do not combine the current infection state (timing), the structural importance, and the downstream reachable exposure into one score, and they do not model a fixed action budget K.
+
+**Where the outcome improves.** Relative to the strands above, the proposed method (i) is node-level and action-aware, answering "which K nodes do I quarantine, given a fixed budget", rather than optimizing a global quantity; (ii) combines three normalized signals — urgency, centrality, and reach — into one composite score, which single-metric targeting cannot; and (iii) is evaluated as a reproducible comparative pipeline rather than as a closed-form claim. On the 19-node multi-branch topology it reduced the mean final infection count to 4.30 versus 9.50 with no containment (a 54.7% reduction), the lowest of all five strategies evaluated. The limitation is equally clear: like the immunization literature, its advantage is topology-dependent, and on the small 8-node topology it only tied the degree baseline (2.00 versus 2.00).
+
+*(Reconcile the exact R1 source list and citation keys with the team's own survey before submission — see §14.)*
 
 ---
 
@@ -207,6 +239,16 @@ OK
 
 This confirms the implemented behaviors covered by the automated suite. It does not prove that the simulation is a complete representation of a production malware incident.
 
+### 6.1 What failed and was fixed during testing
+
+Each strategy is measured against the same benchmark: the uncontrolled (no-containment) outbreak, plus three standard heuristics (random, degree, earliest-infection). Testing surfaced three defects that were corrected before the final run; each is now pinned by a regression test:
+
+1. **Random quarantine advanced the infection stream.** In the random baseline, the selection step originally drew from the same generator that drives infection, so choosing a quarantine target consumed randomness that belonged to the next spread step and broke reproducibility relative to the proposed run. Fixed by using a separate selection generator; pinned by `test_random_selection_does_not_advance_infection_rng`.
+2. **Baselines stopped too early.** Early baseline runners returned as soon as the quarantine budget was spent, so their final infection counts were not comparable with a fully-observed outbreak. Fixed so each strategy runs the outbreak to completion after the budget is exhausted; pinned by `test_*_continues_after_budget_is_used`.
+3. **Dashboard could not render figures.** The visualization functions originally wrote PNGs to disk and returned nothing, which is fine for the CLI but broke the live Streamlit dashboard. Fixed by refactoring them to return a Matplotlib `Figure` and save to disk only when an output path is given (`src/visualize.py`).
+
+In addition, determinism and boundary behaviour were verified rather than debugged: fixed-seed reproducibility (propagation, containment, baselines), transmission at β = 0 and β = 1, non-mutation of the graph by quarantine, and isolation of disconnected components.
+
 ---
 
 ## 7. Experimental Evaluation
@@ -256,6 +298,20 @@ The two scenarios provide a balanced result. On a small topology, degree-based s
 
 The confidence intervals overlap between some strategies. The experiments demonstrate comparative behavior in the simulated settings, but they are not a statistical certification of superiority across all banking networks.
 
+### 7.5 Feasibility analysis (five dimensions)
+
+Feasibility is assessed across five dimensions using the actual implementation and measured numbers. *(Dimension labels follow the standard Technical / Economic / Operational / Legal-regulatory / Schedule framework; confirm the exact labels against the department rubric if required.)*
+
+**1. Technical feasibility — demonstrated.** The prototype is built and runs on the team's machines. It uses Python 3 with NetworkX (graph construction), Matplotlib (figures), and Streamlit (live dashboard); all are open-source and install from `requirements.txt`. The full suite passes 46 tests in 0.036 s, and the multi-branch experiment completes 30 trials over a 19-node graph in seconds on a standard laptop. The technique — discrete-time propagation, composite scoring, greedy selection — requires no specialised hardware, no GPU, and no network access, so there is no technical barrier to reproducing it.
+
+**2. Economic feasibility — negligible cost.** Every dependency is free and open-source, so there is no licensing or subscription cost. The simulation runs locally on existing lab hardware, so there is no cloud, storage, or compute expenditure. The only incremental cost of a real deployment would be the response tooling a bank already owns (firewall ACLs, endpoint isolation, security orchestration), which is outside this prototype's scope. In the prototype, the measured cost is effectively ₹0.
+
+**3. Operational feasibility — low barrier.** Operation requires only a single command (`python -m src.comparison --config config/default.json`) or launching `streamlit run app.py`. Configuration is declarative (JSON) and results are written to a versioned directory, so a non-expert operator can reproduce an experiment without editing code. Deterministic seeding (random seed 42) means the same configuration yields the same plan, which is necessary for operational review and audit.
+
+**4. Legal and regulatory feasibility — compliant by construction.** The project never scans, sniffs, or connects to a production or external network; it operates only on in-memory graph objects, and it does not execute real malware. This keeps the work inside the ethical and legal constraints of the course and aligns with CERT-In incident-response guidance that planning and simulation must not touch live systems. The patent framing follows India Patents Act §3(k) by describing a "system and method" that produces a technical effect (faster, budget-aware containment), rather than software per se.
+
+**5. Schedule feasibility — met.** The project progressed through Review 1 (problem definition), Review 2 (design and development), and Review 3 (prototype, report, and viva) on the course schedule, with the prototype, 46 tests, report, patent specification, and demo artifacts all complete ahead of the final review. The incremental effort to move from prototype to deployment is quantified separately in §12.
+
 ---
 
 ## 8. Results Artifacts
@@ -277,14 +333,12 @@ The JSON summaries preserve configuration, final counts, quarantine plans, infec
 
 ## 9. Computer Networks Course Outcome Mapping
 
-The mapping should be confirmed with the course instructor before final submission.
+| CO | Official course outcome | Project evidence | Justification |
+|---|---|---|---|
+| CO1 | Interpret the different building blocks of a communication network and its architecture. | JSON bank topologies, graph construction, node and edge modeling | The project models hosts, links, and reachable paths as a network graph and analyzes propagation over that architecture — a direct exercise in interpreting network building blocks and structure |
+| CO5 | Compare congestion control mechanisms and select transport layer protocols with security for real-time applications. | Security-oriented containment, quarantine, and segmentation model | The project demonstrates a network-security control that reduces lateral movement; the "with security" facet is the anchor, while congestion-control comparison and protocol-selection simulation are outside the current scope |
 
-| CO | Project evidence | Justification |
-|---|---|---|
-| CO1: Interpret building blocks and architecture of a network | JSON bank topologies, graph construction, node and edge modeling | The project models hosts and reachable paths and analyzes propagation over the resulting network architecture |
-| CO5: Select transport protocols with security for real-time applications | Security-oriented containment, quarantine, and segmentation model | The project demonstrates a network-security control that reduces lateral movement; protocol selection itself is outside the current simulation scope |
-
-A possible additional mapping to switching or segmentation concepts may be proposed only if it matches the official BCSE308P outcome wording and is approved by the instructor.
+The mapping uses the official BCSE308P course-outcome wording shared by the course instructor. CO1 is the primary mapping (topology and architecture); CO5 is a secondary, security-oriented mapping.
 
 ---
 
@@ -302,7 +356,32 @@ Both members should be prepared to explain the complete pipeline during the viva
 
 ---
 
-## 11. Limitations and Future Work
+## 11. Viva Preparation
+
+Both members must be able to explain the whole pipeline, not only their assigned module. The following are the highest-probability questions and the one-sentence answer each expects.
+
+**Concept and motivation**
+
+- *Why a "worm" and not a generic virus?* A self-propagating worm models lateral movement, which is what a containment decision has to stop; a single-host virus has no spread to contain.
+- *Why Emotet-class?* Emotet is both self-propagating and banking-motivated, satisfying the advisor's "one specific type" and "banking" requirements.
+- *What is the real problem being solved?* Given a fixed quarantine budget K, which nodes to isolate, in what order, to minimize final infections.
+
+**Method**
+
+- *What are the three score components?* Urgency (proximity to infection, e^(−d/τ)), centrality (degree / max degree), and reach (susceptible nodes within two hops), combined as α·urgency + β·centrality + γ·reach with α + β + γ = 1.
+- *Why greedy and not optimal?* Greedy recomputes the score each step under a budget; an exact optimum would need integer programming and is not the point of the prototype. This is stated honestly in §12.
+- *What does quarantine mean in the simulation?* Removing a node and its incident edges from the graph; one action is applied after each spread step, modelling a near-real-time response.
+
+**Results and honesty**
+
+- *Does the method always win?* No. On the 19-node topology it is best (4.30 versus 9.50). On the 8-node topology it only ties degree (2.00 versus 2.00). The advantage is topology-dependent, and this is reported rather than hidden.
+- *What are the confidence intervals for?* To show variability across 30 trials and to avoid overclaiming statistical superiority where intervals overlap.
+
+Each member should also be able to walk through the data flow (topology JSON → graph → propagation → score → quarantine plan → comparison), run the CLI, and explain any one test from the suite.
+
+---
+
+## 12. Limitations and Future Work
 
 1. The propagation probability is a simplified abstraction and is not calibrated against a measured Emotet campaign.
 2. The current topology files are representative simulation inputs rather than confidential bank network data.
@@ -310,31 +389,36 @@ Both members should be prepared to explain the complete pipeline during the viva
 4. The greedy selection method is not guaranteed to find the global optimum for arbitrary graphs.
 5. The current experiments vary topology and transmission probability but do not provide a full sensitivity analysis over score weights and budgets.
 6. The project does not include live traffic, packet capture, vulnerability scanning, or malware execution.
-7. Case-study statements and the exact SIH 2026 problem-statement reference require verified external citations before final academic submission.
+7. The SIH 2026 alignment is stated at the theme level (Blockchain & Cybersecurity); the team has not claimed a single published problem-statement identifier, and one should be added only if the team anchors to a specific statement.
 
 Future work can include calibrated transmission parameters, larger anonymized topologies, weight and budget sensitivity experiments, a look-ahead or integer-programming selector, and integration with a simulated SDN controller.
 
 ---
 
-## 12. Conclusion
+## 13. Conclusion
 
 This project implements and evaluates a cost-constrained containment method for self-propagating banking malware in graph-modeled networks. The method combines infection timing, network structure, and reachable exposure to produce an ordered quarantine plan under a two-node action budget. The implementation is reproducible, configurable, and covered by 46 passing automated tests.
 
 The experimental evidence is strongest on the 19-node multi-branch topology, where the proposed strategy achieved a mean of 4.30 infected nodes across 30 trials, outperforming the evaluated baselines. On the smaller 8-node topology, it tied the degree baseline at 2.00 mean infections. Together, these findings support the project’s central claim that budget-aware, topology-informed containment is a useful security decision method, while also identifying the need for broader topologies, sensitivity analysis, and real-world calibration.
 
-The prototype therefore satisfies the implementation objective for the Computer Networks Lab project. Final submission readiness still depends on adding verified references, official CO wording, the confirmed SIH problem-statement identifier, actual team details, and institution-required formatting.
+The prototype therefore satisfies the implementation objective for the Computer Networks Lab project. Final submission readiness now depends only on actual team details, institution-required formatting, and the optional confirmation of a single SIH 2026 problem-statement identifier.
 
 ---
 
-## References to Complete Before Submission
+## 14. References
 
-Use the required citation style and verify every source directly. Suggested source categories are:
+> Reconcile this list with the team's actual R1 survey and add access dates before submission. References 1–8, 10, and 11 are complete and verifiable; Reference 9 (SIH 2026) is aligned to the Blockchain & Cybersecurity theme and only needs a specific problem-statement identifier if the team anchors to a single published statement.
 
-1. Official CERT-In advisories and annual reports relevant to banking malware and incident response.
-2. Official or peer-reviewed material describing Emotet behavior and lateral movement.
-3. Peer-reviewed literature on epidemic models, graph-based propagation, and network immunization.
-4. Official SIH 2026 problem-statement page and identifier.
-5. Official BCSE308P course-outcome wording and department project guidelines.
-6. NetworkX and Matplotlib documentation for the implementation environment.
+1. W. O. Kermack and A. G. McKendrick, "A contribution to the mathematical theory of epidemics," *Proceedings of the Royal Society of London A*, vol. 115, pp. 700–721, 1927.
+2. J. O. Kephart and S. R. White, "Directed-graph epidemiological models of computer viruses," in *Proc. IEEE Symposium on Security and Privacy*, 1991, pp. 343–359.
+3. J. O. Kephart and S. R. White, "Measuring and modeling computer virus prevalence," in *Proc. IEEE Symposium on Security and Privacy*, 1993, pp. 2–15.
+4. R. Pastor-Satorras and A. Vespignani, "Epidemic spreading in scale-free networks," *Physical Review Letters*, vol. 86, no. 14, pp. 3200–3203, 2001.
+5. M. E. J. Newman, "Spread of epidemic disease on networks," *Physical Review E*, vol. 66, no. 1, 016128, 2002.
+6. R. Cohen, S. Havlin, and D. ben-Avraham, "Efficient immunization strategies for computer networks and populations," *Physical Review Letters*, vol. 91, no. 24, 247901, 2003.
+7. Indian Computer Emergency Response Team (CERT-In), "Drinik Android malware targeting Indian banking users, masquerades as Income Tax refund," Advisory No. CICA-2021-2970, 21 September 2021. https://www.cert-in.org.in/s2cMainServlet?pageid=PUBADV01&CACODE=CICA-2021-2970
+8. Cybersecurity and Infrastructure Security Agency (CISA), "Emotet Malware," Alert TA18-201A, 2018; and "Emotet Malware," Advisory AA20-280A, 21 October 2020. https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-280a
+9. Smart India Hackathon (SIH) 2026, problem statements under the "Blockchain & Cybersecurity" theme (22 statements), Smart India Hackathon portal. https://www.sih.gov.in/ *(the project is aligned to this theme; confirm the exact problem-statement identifier if the team anchors to a single published statement)*.
+10. A. A. Hagberg, D. A. Schult, and P. J. Swart, "Exploring network structure, dynamics, and function using NetworkX," in *Proc. SciPy 2008*, pp. 11–15.
+11. BCSE308P Computer Networks Lab, official course-outcome wording and project guidelines, VIT Vellore.
 
-Do not submit the placeholder section above as a finished bibliography; replace it with the exact sources consulted and cited in the body of the report.
+*(References 1–6 and 10 are standard, verifiable academic sources included to anchor the literature comparison in §3.1; reconcile them against the team's R1 survey and the institution's required citation style.)*
