@@ -115,6 +115,9 @@ def run_comparison(graph, seeds=SEEDS, beta=BETA, budget=K, rng_seed=RNG_SEED):
     }
     histories = {
         "No Containment": no_containment["history"],
+        "Random": random_result["history"],
+        "Degree": degree_result["history"],
+        "Earliest Infection": earliest_result["history"],
         "Proposed": proposed_result["history"],
     }
     return results, plans, histories, no_containment["infected"]

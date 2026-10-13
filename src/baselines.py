@@ -1,6 +1,6 @@
 """Baseline containment strategies for comparison with the proposed method."""
 
-from src.propagation import propagate, propagate_with_history, simulate_step
+from src.propagation import propagate_with_history, simulate_step
 
 
 def run_no_containment(graph, seeds, beta, rng):
@@ -47,22 +47,25 @@ def _run_realtime_baseline(graph, seeds, beta, budget, rng, choose_node):
     """Apply one action after each observed spread step until budget is exhausted."""
     g = {u: set(v) for u, v in graph.items()}
     infected, plan = set(seeds), []
+    history = [len(infected)]
 
     while len(plan) < budget:
         newly = simulate_step(g, infected, beta, rng)
         if not newly:
-            return {"plan": plan, "infected_count": len(infected)}
+            return {"plan": plan, "infected_count": len(infected), "history": history}
         infected |= newly
+        history.append(len(infected))
         susceptible = set(g) - infected
         if not susceptible:
-            return {"plan": plan, "infected_count": len(infected)}
+            return {"plan": plan, "infected_count": len(infected), "history": history}
         node = choose_node(g, susceptible, infected)
         g = quarantine(g, node)
         plan.append(node)
 
     # The budget is spent, so simulate the remaining outbreak exactly once.
-    _, infected = propagate(g, infected, beta, rng)
-    return {"plan": plan, "infected_count": len(infected)}
+    _, infected, remaining = propagate_with_history(g, infected, beta, rng)
+    history.extend(remaining[1:])
+    return {"plan": plan, "infected_count": len(infected), "history": history}
 
 
 def _distance_to_infected(graph, start, infected):

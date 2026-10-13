@@ -113,7 +113,20 @@ with col_left:
     )
 with col_right:
     st.subheader("Infection curves")
-    st.pyplot(plot_infection_curves(histories), width="stretch")
+    curve_options = list(histories.keys())
+    selected_curves = st.multiselect(
+        "Strategies to show",
+        options=curve_options,
+        default=curve_options,
+        key="curve_strategy_select",
+    )
+    if selected_curves:
+        st.pyplot(
+            plot_infection_curves({s: histories[s] for s in selected_curves}),
+            width="stretch",
+        )
+    else:
+        st.info("Select at least one strategy to show its infection curve.")
 
 st.subheader("Network topology")
 st.pyplot(
